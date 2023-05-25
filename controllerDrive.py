@@ -22,7 +22,7 @@ myCar = QCar()
 new = gpad.read()
 try:
     while gpad.B != 1:
-        mtr_cmd = np.array([.2*gpad.RT, gpad.left - gpad.right])
+        mtr_cmd = np.array([.05*gpad.RT, gpad.left - gpad.right])
         LEDs = np.array([0, 0, 0, 0, 0, 0, 1, 1])
         new = gpad.read()
 
