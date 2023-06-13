@@ -56,6 +56,11 @@ try:
 
         current, batteryVoltage, encoderCounts = myCar.read_write_std(mtr_cmd, LEDs)
 
+        print(encoderCounts)
+        #gyro = myCar.read_gyroscope()
+        #velocity = myCar.read_accelerometer()
+        #print(velocity)
+        #print(gyro)
         ## Camera
         #myCam1.read_RGB()
         #myCam1.read_depth(dataMode='m') # for data in meters... 
