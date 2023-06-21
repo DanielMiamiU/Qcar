@@ -22,7 +22,7 @@ def elapsed_time():
 #
 def SensorMapping(m, bot_pos, angles, dists):
     for i in range(num_measurements):
-        if dists[i] > max_distance or dists[i] < .01:
+        if dists[i] >= max_distance * 10 or dists[i] < .01:
             continue
         theta = bot_pos[2] + angles[i]
         m.GridMapLine(
@@ -55,7 +55,7 @@ if __name__ == '__main__':
     m = GridMap(map_param, gsize=1)
     
     # TODO change env to Qcar friendly
-    bot_pos = np.array([10.0, 10.0, 0.0])
+    bot_pos = np.array([0.0, 0.0, 0.0])
     
     counter = 0
     while elapsed_time() < 30.0:
@@ -63,7 +63,7 @@ if __name__ == '__main__':
         start = time.time()
         if myLidar.distances.any() !=0:
             #print(myLidar.distances)
-            SensorMapping(m, bot_pos, myLidar.angles, myLidar.distances * 6)
+            SensorMapping(m, bot_pos, myLidar.angles, myLidar.distances * 10)
     
             mimg = AdaptiveGetMap(m)
             cv2.imshow('map',mimg)
