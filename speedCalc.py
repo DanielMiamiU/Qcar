@@ -21,3 +21,11 @@ class speedCalc:
         self.begin_encoder = currentEncoder
         
         return ((encoderChange/31844) * (.066 * np.pi)) / totalTime
+
+    def encoder_dist(self):
+        currentEncoder = self.qCar.read_encoder()
+        encoderChange = currentEncoder - self.begin_encoder
+        self.begin_encoder = currentEncoder
+        return (encoderChange/31844) * (.066 * np.pi)
+
+    

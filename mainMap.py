@@ -10,8 +10,10 @@ from ParticleFilter import *
 # from SingleBotLaser2D import *
 import copy
 
+# map units is used to convert the lidar distances to different measurements (100 makes it cm)
 num_measurements=720
 max_distance=5
+mapUnits=10
 myLidar = LIDAR(num_measurements, max_distance)
 
 startTime = time.time()
@@ -22,7 +24,7 @@ def elapsed_time():
 #
 def SensorMapping(m, bot_pos, angles, dists):
     for i in range(num_measurements):
-        if dists[i] >= max_distance * 10 or dists[i] < .01:
+        if dists[i] >= max_distance * mapUnits or dists[i] < .01:
             continue
         theta = bot_pos[2] + angles[i]
         m.GridMapLine(
@@ -63,7 +65,7 @@ if __name__ == '__main__':
         start = time.time()
         if myLidar.distances.any() !=0:
             #print(myLidar.distances)
-            SensorMapping(m, bot_pos, myLidar.angles, myLidar.distances * 10)
+            SensorMapping(m, bot_pos, myLidar.angles, myLidar.distances * mapUnits)
     
             mimg = AdaptiveGetMap(m)
             cv2.imshow('map',mimg)

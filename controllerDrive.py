@@ -1,12 +1,15 @@
 from Quanser.q_ui import gamepadViaTarget
 from Quanser.product_QCar import QCar
 from Quanser.q_essential import Camera3D, LIDAR
+from Quanser.q_interpretation import *
+from speedCalc import *
 import time
 import numpy as np
 import os
 import struct
 import matplotlib.pyplot as plt
 import cv2
+import utils
 
 ## Timing Parameters
 startTime = time.time()
@@ -20,13 +23,14 @@ counter = 0
 imageWidth = 1280
 imageHeight = 720
 max_distance = 5
-
+robot_pos = np.array([0.0, 0.0, 0.0])
 
 # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
 ## Object Initialization
 myCar = QCar()
 myCam1 = Camera3D(mode='RGB&DEPTH', frame_width_RGB=imageWidth, frame_height_RGB=imageHeight)
 myLidar = LIDAR(num_measurements=7200, max_distance=1.5)
+mySpeed = speedCalc(robot_pos, myCar, time.time())
 h = plt.polar()
 plt.show(block=False)
 
@@ -46,7 +50,7 @@ try:
         start = time.time()
         counter += 1
         ## Movement and Gamepad
-        mtr_cmd = np.array([.05*gpad.RT, gpad.left - gpad.right])
+        mtr_cmd = np.array([.05*gpad.RT, (gpad.left - gpad.right) * .3])
         LEDs = np.array([0, 0, 0, 0, 0, 0, 1, 1])
         new = gpad.read()
 
@@ -56,7 +60,12 @@ try:
 
         current, batteryVoltage, encoderCounts = myCar.read_write_std(mtr_cmd, LEDs)
 
-        print(encoderCounts)
+       
+        # End timing this iteration
+        end = time.time()
+        robot_pos = utils.posUpdate(robot_pos, mtr_cmd[1], mySpeed.encoder_dist())
+        print(robot_pos)
+
         #gyro = myCar.read_gyroscope()
         #velocity = myCar.read_accelerometer()
         #print(velocity)
@@ -65,8 +74,7 @@ try:
         #myCam1.read_RGB()
         #myCam1.read_depth(dataMode='m') # for data in meters... 
 
-        # End timing this iteration
-        end = time.time()
+        
 
         # Calculate the computation time, and the time that the thread should pause/sleep for
         computationTime = end - start

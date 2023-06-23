@@ -7,7 +7,7 @@ class GridMap:
         self.map_param = map_param
         self.gmap = {}
         self.gsize = gsize
-        self.boundary = [0, 20, 0, 20] #[9999,-9999,9999,-9999]
+        self.boundary = [-100, 100, -100, 100] #[9999,-9999,9999,-9999]
 
     def GetGridProb(self, pos):
         if pos in self.gmap:

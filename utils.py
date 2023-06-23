@@ -75,3 +75,42 @@ def Rotation2Deg(R):
         return 0.0
     elif cos<0 and sin==0:
         return 180.0
+
+def xPos(heading, dist=0.0):
+    return dist * np.cos(heading)
+
+def yPos(heading, dist=0.0):
+    return dist * np.sin(heading)
+
+# .26 is the length from axle to axle in m
+def anglePos(theta, phi, dist=0.0):
+    divby0check = np.tan(phi)
+    if divby0check == 0:
+        return theta
+    
+    radius = .26 / divby0check
+    angle = dist/radius
+    print(radius)
+    if phi > 0:
+        return  theta + angle
+    else:
+        return theta - angle
+
+
+def radsLimit(angle):
+    if angle >= 0 and angle < 2 * np.pi:
+        return angle
+    else:
+        if angle < 0:
+            return radsLimit(angle + 2*np.pi)
+        else:
+            return radsLimit(angle - 2*np.pi)
+
+
+
+
+def posUpdate(robot_pos, turnAngle, dist=0.0):
+    xNew, yNew = xPos(robot_pos[2], dist) + robot_pos[0], yPos(robot_pos[2], dist) + robot_pos[1]
+    thetaNew = radsLimit(anglePos(robot_pos[2], turnAngle, dist))
+    return [xNew, yNew, thetaNew]
+
