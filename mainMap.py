@@ -1,4 +1,7 @@
 from Quanser.q_essential import LIDAR
+from Quanser.q_ui import gamepadViaTarget
+from Quanser.product_QCar import QCar
+from speedCalc import *
 import numpy as np
 import random
 import utils
@@ -14,7 +17,12 @@ import copy
 num_measurements=720
 max_distance=5
 mapUnits=10
+robot_pos = np.array([0.0, 0.0, 0.0])
 myLidar = LIDAR(num_measurements, max_distance)
+myCar = QCar()
+gpad = gamepadViaTarget(1)
+mySpeed = speedCalc(robot_pos, myCar, time.time())
+
 
 startTime = time.time()
 sampleTime = 1/30
@@ -48,6 +56,7 @@ def AdaptiveGetMap(gmap):
     mimg = cv2.cvtColor(mimg, cv2.COLOR_GRAY2RGB)
     return mimg
 
+new = gpad.read()
 
 if __name__ == '__main__':
     cv2.namedWindow('map', cv2.WINDOW_AUTOSIZE)
@@ -57,15 +66,24 @@ if __name__ == '__main__':
     m = GridMap(map_param, gsize=1)
     
     # TODO change env to Qcar friendly
-    bot_pos = np.array([0.0, 0.0, 0.0])
+    
     
     counter = 0
-    while elapsed_time() < 30.0:
+    while gpad.B != 1:
         myLidar.read()
         start = time.time()
+        mtr_cmd = np.array([.05*gpad.RT, (gpad.left - gpad.right) * .3])
+        LEDs = np.array([0, 0, 0, 0, 0, 0, 1, 1])
+        new = gpad.read()
+
+        myCar.read_write_std(mtr_cmd, LEDs)
+
+        robot_pos = utils.posUpdate(robot_pos, mtr_cmd[1], mySpeed.encoder_dist())
+        
+
         if myLidar.distances.any() !=0:
             #print(myLidar.distances)
-            SensorMapping(m, bot_pos, myLidar.angles, myLidar.distances * mapUnits)
+            SensorMapping(m, robot_pos, myLidar.angles, myLidar.distances * mapUnits)
     
             mimg = AdaptiveGetMap(m)
             cv2.imshow('map',mimg)

@@ -90,12 +90,11 @@ def anglePos(theta, phi, dist=0.0):
     
     radius = .26 / divby0check
     angle = dist/radius
-    print(radius)
+    
     if phi > 0:
         return  theta + angle
     else:
         return theta - angle
-
 
 def radsLimit(angle):
     if angle >= 0 and angle < 2 * np.pi:
@@ -106,11 +105,8 @@ def radsLimit(angle):
         else:
             return radsLimit(angle - 2*np.pi)
 
-
-
-
 def posUpdate(robot_pos, turnAngle, dist=0.0):
-    xNew, yNew = xPos(robot_pos[2], dist) + robot_pos[0], yPos(robot_pos[2], dist) + robot_pos[1]
+    xNew, yNew = xPos(robot_pos[2], dist) * 10 + robot_pos[0], yPos(robot_pos[2], dist) * 10 + robot_pos[1]
     thetaNew = radsLimit(anglePos(robot_pos[2], turnAngle, dist))
     return [xNew, yNew, thetaNew]
 
