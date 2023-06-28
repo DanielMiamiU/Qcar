@@ -43,10 +43,6 @@ def SensorMapping(m, bot_pos, angles, dists):
         )
         #print(bot_pos[0]+dists[i]*np.cos(theta))
         #print(bot_pos[1]+dists[i]*np.sin(theta))
-        
-        
-        
-        
 
 def AdaptiveGetMap(gmap):
     mimg = gmap.GetMapProb(
@@ -57,41 +53,61 @@ def AdaptiveGetMap(gmap):
     return mimg
 
 new = gpad.read()
-
+last_encoder_dist = 0
 if __name__ == '__main__':
     cv2.namedWindow('map', cv2.WINDOW_AUTOSIZE)
+    cv2.namedWindow('particle_map', cv2.WINDOW_AUTOSIZE)
     # Initialize GridMap
     # lo_occ, lo_free, lo_max, lo_min
     map_param = [.4, -.4, 5.0, -5.0] 
     m = GridMap(map_param, gsize=1)
-    
+    myLidar.read()
     # TODO change env to Qcar friendly
+    do = True
+    while (do):
+        
+        SensorMapping(m, robot_pos, myLidar.angles, myLidar.distances * mapUnits)
+        mimg = AdaptiveGetMap(m)
+        cv2.imshow('map',mimg)
+        cv2.waitKey(1)
+        pf = ParticleFilter(robot_pos.copy(), num_measurements, max_distance, mapUnits, copy.deepcopy(m), 10)
+        if myLidar.distances.any() != 0:
+            do = False
+        else:
+            myLidar.read()
     
-    
-    counter = 0
     while gpad.B != 1:
         myLidar.read()
+        new = gpad.read()
         start = time.time()
         mtr_cmd = np.array([.05*gpad.RT, (gpad.left - gpad.right) * .3])
         LEDs = np.array([0, 0, 0, 0, 0, 0, 1, 1])
-        new = gpad.read()
+        
 
         myCar.read_write_std(mtr_cmd, LEDs)
-
-        robot_pos = utils.posUpdate(robot_pos, mtr_cmd[1], mySpeed.encoder_dist())
+        encoder_Dist = mySpeed.encoder_dist()
+        robot_pos = utils.posUpdate(robot_pos, mtr_cmd[1], encoder_Dist)
         
 
-        if myLidar.distances.any() !=0:
-            #print(myLidar.distances)
+        
+            
+            
+        if (encoder_Dist > 0):
             SensorMapping(m, robot_pos, myLidar.angles, myLidar.distances * mapUnits)
-    
+
+            pf.Feed(robot_pos[2], mtr_cmd[1], encoder_Dist, myLidar.angles, myLidar.distances * mapUnits)
+            mid = np.argmax(pf.weights)
+            imgp0 = AdaptiveGetMap(pf.particle_list[mid].gmap)
+            
+            SensorMapping(m, robot_pos, myLidar.angles, myLidar.distances * mapUnits)
             mimg = AdaptiveGetMap(m)
             cv2.imshow('map',mimg)
-            cv2.waitKey(1)
 
-            #pf = ParticleFilter(bot_pos.copy(), bot_param, copy.deepcopy(m), 10)
+            cv2.imshow('particle_map',imgp0)
+            pf.Resampling(num_measurements, myLidar.angles, myLidar.distances * mapUnits)
+            last_encoder_dist = encoder_Dist
         
-        counter += 1
+        
         end = time.time()
 
         # Calculate the computation time, and the time that the thread should pause/sleep for

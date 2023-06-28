@@ -1,6 +1,7 @@
 # Copied From https://github.com/toolbuddy/2D-Grid-SLAM/blob/master/utils.py
 import numpy as np
 import cv2
+import random
 from math import *
 
 def EndPoint(robot_pos, angles, dists):
@@ -108,5 +109,11 @@ def radsLimit(angle):
 def posUpdate(robot_pos, turnAngle, dist=0.0):
     xNew, yNew = xPos(robot_pos[2], dist) * 10 + robot_pos[0], yPos(robot_pos[2], dist) * 10 + robot_pos[1]
     thetaNew = radsLimit(anglePos(robot_pos[2], turnAngle, dist))
+
+
+    #sig=[0.5,0.5,0.5]
+    #xNew += random.gauss(0,sig[0])
+    #yNew += random.gauss(0,sig[1])
+    #thetaNew += random.gauss(0,sig[2])
     return [xNew, yNew, thetaNew]
 
