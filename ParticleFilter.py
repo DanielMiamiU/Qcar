@@ -51,7 +51,7 @@ class Particle:
             if dists[i] >= self.maxDist * self.mapUnits or dists[i] < .01:
                 continue
             dist = self.NearestDistance(plist[i][0], plist[i][1], 4, 0.2)
-            q = q * (p_hit*utils.gaussian(0,dist,sig_hit) + p_rand/(self.maxDist * self.mapUnits))
+            #q = q * (p_hit*utils.gaussian(0,dist,sig_hit) + p_rand/(self.maxDist * self.mapUnits))
             
             q += math.log(p_hit*utils.gaussian(0,dist,sig_hit) + p_rand/(self.maxDist * self.mapUnits))
         return q
@@ -108,5 +108,8 @@ class ParticleFilter:
             self.particle_list[i].Sampling(heading, turnAngle, encoder_dist)
             field[i] = self.particle_list[i].LikelihoodField(angles, dists)
             #self.particle_list[i].Mapping(sensor_data)
-        self.weights = field / np.sum(field)
+        if (np.sum(field)!= 0):
+            self.weights = field / np.sum(field)
+        else:
+            self.weight = np.ones((self.size), dtype=float) / self.size
         #self.Resampling(sensor_data)
