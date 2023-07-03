@@ -7,7 +7,7 @@ class GridMap:
         self.map_param = map_param
         self.gmap = {}
         self.gsize = gsize
-        self.boundary = [-100, 100, -100, 100] #[9999,-9999,9999,-9999]
+        self.boundary = [9999, -9999, 9999, -9999] #[9999,-9999,9999,-9999]
 
     def GetGridProb(self, pos):
         if pos in self.gmap:
@@ -48,6 +48,41 @@ class GridMap:
                 self.gmap[rec[i]] += change
             else:
                 self.gmap[rec[i]] = change
+                if rec[i][0] < self.boundary[0]:
+                    self.boundary[0] = rec[i][0]
+                    #print("Boundary Changed 1")
+                elif rec[i][0] > self.boundary[1]:
+                    self.boundary[1] = rec[i][0]
+                    #print("Boundary Changed 2")                    
+                if rec[i][1] < self.boundary[2]:
+                    self.boundary[2] = rec[i][1]
+                    #print("Boundary Changed 3")
+                elif rec[i][1] > self.boundary[3]:
+                    self.boundary[3] = rec[i][1]
+                    #print("Boundary Changed 4")
+
+
+            if self.gmap[rec[i]] > self.map_param[2]:
+                self.gmap[rec[i]] = self.map_param[2]
+            if self.gmap[rec[i]] < self.map_param[3]:
+                self.gmap[rec[i]] = self.map_param[3]
+
+
+    def EmptyMapLine(self, x0, x1, y0, y1):
+        # Scale the position
+        #print(y1)
+        x0, x1 = int(round(x0/self.gsize)), int(round(x1/self.gsize))
+        y0, y1 = int(round(y0/self.gsize)), int(round(y1/self.gsize))
+        #print(y1)
+
+        rec = utils.Bresenham(x0, x1, y0, y1)
+        for i in range(len(rec)):
+    
+
+            if rec[i] in self.gmap:
+                self.gmap[rec[i]] += self.map_param[0]
+            else:
+                self.gmap[rec[i]] = self.map_param[0]
                 if rec[i][0] < self.boundary[0]:
                     self.boundary[0] = rec[i][0]
                     #print("Boundary Changed 1")

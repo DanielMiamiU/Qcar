@@ -16,8 +16,8 @@ class Particle:
         self.gmap = gmap
 
     def Sampling(self, heading, turnAngle, encoder_dist, sig=[0.4,0.4,0.4]):
-        self.pos[0], self.pos[1] = utils.xPos(heading, encoder_dist), utils.yPos(heading, encoder_dist)
-        self.pos[2] = utils.anglePos(heading, turnAngle, encoder_dist)
+        self.pos[0], self.pos[1] = self.pos[0] + utils.xPos(heading, encoder_dist) * self.mapUnits, self.pos[1] + utils.yPos(heading, encoder_dist) * self.mapUnits
+        self.pos[2] = self.pos[2] + utils.anglePos(heading, turnAngle, encoder_dist)
 
         self.pos[0] += random.gauss(0,sig[0])
         self.pos[1] += random.gauss(0,sig[1])
@@ -58,7 +58,17 @@ class Particle:
 
     def Mapping(self, num_measurements, angles, dists):
         for i in range(num_measurements):
-            if dists[i] >= self.maxDist * self.mapUnits or dists[i] < .01:
+            if dists[i] >= (self.maxDist - .5) * self.mapUnits:
+                theta = self.pos[2] + angles[i]
+                self.gmap.EmptyMapLine(
+                int(self.pos[0]), 
+                int(self.pos[0]+dists[i]*np.cos(theta)),
+                int(self.pos[1]),
+                int(self.pos[1]+dists[i]*np.sin(theta))
+                )
+            
+                continue
+            if dists[i] < .3:
                 continue
             theta = self.pos[2] + angles[i]
             self.gmap.GridMapLine(

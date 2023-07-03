@@ -106,8 +106,8 @@ def radsLimit(angle):
         else:
             return radsLimit(angle - 2*np.pi)
 
-def posUpdate(robot_pos, turnAngle, dist=0.0):
-    xNew, yNew = xPos(robot_pos[2], dist) * 10 + robot_pos[0], yPos(robot_pos[2], dist) * 10 + robot_pos[1]
+def posUpdate(robot_pos, turnAngle, mapUnits, dist=0.0):
+    xNew, yNew = xPos(robot_pos[2], dist) * mapUnits + robot_pos[0], yPos(robot_pos[2], dist) * mapUnits + robot_pos[1]
     thetaNew = radsLimit(anglePos(robot_pos[2], turnAngle, dist))
 
 
