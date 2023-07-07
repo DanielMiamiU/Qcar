@@ -7,6 +7,7 @@ class GridMap:
         self.map_param = map_param
         self.gmap = {}
         self.gsize = gsize
+        self.center = np.array([0,0])
         self.boundary = [9999, -9999, 9999, -9999] #[9999,-9999,9999,-9999]
 
     def GetGridProb(self, pos):
@@ -26,6 +27,8 @@ class GridMap:
             idy = 0
             for j in range(y0, y1):
                 map_prob[idy, idx] = self.GetGridProb((i,j))
+                if i ==0 and j == 0:
+                    self.center = np.array([idx, idy])
                 idy += 1
             idx += 1
         return map_prob
