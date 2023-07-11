@@ -15,9 +15,9 @@ class Particle:
         self.mapUnits = mapUnits
         self.gmap = gmap
 
-    def Sampling(self, heading, turnAngle, encoder_dist, sig=[0.2,0.2,0.1]):
-        self.pos[0], self.pos[1] = self.pos[0] + utils.xPos(heading, encoder_dist) * self.mapUnits, self.pos[1] + utils.yPos(heading, encoder_dist) * self.mapUnits
-        self.pos[2] = utils.radsLimit(self.pos[2] + utils.anglePos(heading, turnAngle, encoder_dist))
+    def Sampling(self, turnAngle, encoder_dist, sig=[0.2,0.2,0.1]):
+        self.pos[0], self.pos[1] = self.pos[0] + utils.xPos(self.pos[2], encoder_dist) * self.mapUnits, self.pos[1] + utils.yPos(self.pos[2], encoder_dist) * self.mapUnits
+        self.pos[2] = utils.radsLimit(self.pos[2] + utils.anglePos(self.pos[2], turnAngle, encoder_dist))
 
         self.pos[0] += random.gauss(0,sig[0])
         self.pos[1] += random.gauss(0,sig[1])
@@ -58,8 +58,9 @@ class Particle:
 
     def Mapping(self, num_measurements, angles, dists):
         for i in range(num_measurements):
-            if dists[i] >= (self.maxDist - .2) * self.mapUnits:
+            if dists[i] >= (self.maxDist) * self.mapUnits:
                 continue
+                """
                 theta = self.pos[2] + angles[i]
                 self.gmap.EmptyMapLine(
                 int(self.pos[0]), 
@@ -67,9 +68,9 @@ class Particle:
                 int(self.pos[1]),
                 int(self.pos[1]+dists[i]*np.sin(theta))
                 )
-            
+                """
                 
-            if dists[i] < .2:
+            if dists[i] < .05:
                 continue
             theta = self.pos[2] - angles[i]
             self.gmap.GridMapLine(
@@ -113,10 +114,10 @@ class ParticleFilter:
         self.weights = np.ones((self.size), dtype=float) / float(self.size)
 
     # sensor_data wanted = dsitances
-    def Feed(self, heading, turnAngle, encoder_dist, angles, dists):
+    def Feed(self, turnAngle, encoder_dist, angles, dists):
         field = np.ones((self.size), dtype=float)
         for i in range(self.size):
-            self.particle_list[i].Sampling(heading, turnAngle, encoder_dist)
+            self.particle_list[i].Sampling(turnAngle, encoder_dist)
             field[i] = self.particle_list[i].LikelihoodField(angles, dists)
             #self.particle_list[i].Mapping(sensor_data)
         if (np.sum(field)!= 0):

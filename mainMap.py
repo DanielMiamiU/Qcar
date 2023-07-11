@@ -3,11 +3,9 @@ from Quanser.q_ui import gamepadViaTarget
 from Quanser.product_QCar import QCar
 from speedCalc import *
 import numpy as np
-import random
 import utils
 import cv2
 import time
-import math
 from GridMap import *
 from ParticleFilter import *
 import copy
@@ -17,8 +15,9 @@ import copy
 # mapUnits is used to convert the lidar distances from meters to different measurements (10 makes it dm)
 # robot_pos is the robots coordinates and pose [x, y, theta]
 num_measurements=360
-max_distance=2
-mapUnits=30
+max_distance= 2
+mapUnits=20
+num_particles = 5
 robot_pos = np.array([0.0, 0.0, 0.0])
 
 # Object initialization
@@ -34,10 +33,11 @@ def elapsed_time():
     return time.time() - startTime
 
 # Changes the given map (m) based on robots position (bot_pos) and lidar scan results (angles and dists)
-def SensorMapping(m, bot_pos, angles, dists):
+def SensorMapping(m, bot_pos, angles, dists): 
     for i in range(num_measurements):
-        if dists[i] >= (max_distance - .2) * mapUnits:
+        if dists[i] >= (max_distance) * mapUnits:
             continue
+            """
             theta = bot_pos[2] + angles[i]
             m.EmptyMapLine(
             int(bot_pos[0]), 
@@ -45,9 +45,9 @@ def SensorMapping(m, bot_pos, angles, dists):
             int(bot_pos[1]),
             int(bot_pos[1]+dists[i]*np.sin(theta))
             )
+            """
             
-            
-        if dists[i] < .2:
+        if dists[i] < .05:
             continue
         theta = bot_pos[2] - angles[i]
         m.GridMapLine(
@@ -56,9 +56,6 @@ def SensorMapping(m, bot_pos, angles, dists):
         int(bot_pos[1]),
         int(bot_pos[1]+dists[i]*np.sin(theta))
         )
-        # print(dists[i])
-        # print(theta)
-
 
 # Makes an image based on the given gridmap (gmap)
 def AdaptiveGetMap(gmap):
@@ -79,8 +76,6 @@ def DrawParticle(img, plist, scale=1.0):
 new = gpad.read()
 
 if __name__ == '__main__':
-    #cv2.namedWindow('map', cv2.WINDOW_AUTOSIZE)
-    
     cv2.namedWindow('particle_map', cv2.WINDOW_AUTOSIZE)
     # Initialize GridMap
     # lo_occ, lo_free, lo_max, lo_min
@@ -88,20 +83,17 @@ if __name__ == '__main__':
     m = GridMap(map_param, gsize=1)
     myLidar.read()
     encoder_Dist = 0
-    print("Start: "+ time.asctime( time.localtime(time.time()) ))
-    
+    print("Start: "+ str(elapsed_time()))
     # Makes a rudimentary map of the starting area
     # Cannot move the car while making this map
     counter = 0
     while (elapsed_time() < 5.0):
-        if myLidar.distances.any() != 0 and counter % 10 == 0:
-            SensorMapping(m, robot_pos, myLidar.angles, myLidar.distances * mapUnits)
-            mimg = AdaptiveGetMap(m)
         myLidar.read()
-        counter += 1
     
-    # Initialize the particle filter based on the map of teh starting area
-    pf = ParticleFilter(robot_pos.copy(), num_measurements, max_distance, mapUnits, copy.deepcopy(m), 5)
+    # Initialize the particle filter based on the map of the starting area
+    SensorMapping(m, robot_pos, myLidar.angles, myLidar.distances * mapUnits)
+    mimg = AdaptiveGetMap(m)
+    pf = ParticleFilter(robot_pos.copy(), num_measurements, max_distance, mapUnits, copy.deepcopy(m), num_particles)
 
     counter = 0
     image_counter = 0
@@ -119,27 +111,28 @@ if __name__ == '__main__':
 
         myCar.read_write_std(mtr_cmd, LEDs)
         #if counter % 10 == 0:
-        encoder_Dist += mySpeed.encoder_dist()
-        robot_pos = utils.posUpdate(robot_pos, mtr_cmd[1], mapUnits, encoder_Dist)
+        encoder_Dist = mySpeed.encoder_dist()
+        #robot_pos = utils.posUpdate(robot_pos, mtr_cmd[1], mapUnits, encoder_Dist)
         myLidar.read()
 
         # Only update the particle filter when the car moves
         if (encoder_Dist > 0):
             #myCar.read_write_std((0,0), LEDs)
-            print("Start PF: "+ time.asctime( time.localtime(time.time()) ))
-            pf.Feed(robot_pos[2], mtr_cmd[1], encoder_Dist, myLidar.angles, myLidar.distances * mapUnits)
+            print("Start PF: "+ str(elapsed_time()))
+            pf.Feed( mtr_cmd[1], encoder_Dist, myLidar.angles, myLidar.distances * mapUnits)
             pf.Resampling(num_measurements, myLidar.angles, myLidar.distances * mapUnits)
-            encoder_Dist = 0
             image_counter += 1
-            print("End PF: "+ time.asctime( time.localtime(time.time()) ))
+            print("End PF: "+ str(elapsed_time()))
                 
                 
         # Finds the most probable particle        
         mid = np.argmax(pf.weights)
 
+        print(pf.particle_list[mid].pos)
         # Get an image from the most probable particle map
         imgp0 = AdaptiveGetMap(pf.particle_list[mid].gmap)
         imgp0 = DrawParticle(imgp0, pf.particle_list)
+        
         cv2.imwrite('map' + str(counter) + '.jpg', imgp0)
         cv2.imshow('particle_map',imgp0)
         
@@ -152,8 +145,7 @@ if __name__ == '__main__':
         computationTime = end - start
         sleepTime = sampleTime - ( computationTime % sampleTime )
         
-        # Pause/sleep and print out the current timestamp
-        #time.sleep(sleepTime)
+        # Pause/sleep
 
         print("End: "+ time.asctime( time.localtime(time.time()) ))
         msSleepTime = int(1000*sleepTime)
@@ -163,4 +155,5 @@ if __name__ == '__main__':
 
 
 myLidar.terminate()
-myCar.read_write_std(np.array([0,0]), np.array([0, 0, 0, 0, 0, 0, 0, 0]))
+gpad.terminate()
+myCar.terminate()

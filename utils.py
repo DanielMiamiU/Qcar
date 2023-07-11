@@ -4,6 +4,7 @@ import cv2
 import random
 from math import *
 
+# Creates a list of points where the Lidar senses an object
 def EndPoint(robot_pos, angles, dists):
     pts_list = []
     for i in range(len(angles)):
@@ -11,9 +12,11 @@ def EndPoint(robot_pos, angles, dists):
         pts_list.append([robot_pos[0] + dists[i] * np.cos(theta), robot_pos[1] + dists[i] * np.sin(theta)])
     return pts_list
 
+# 
 def gaussian(x, mu, sig):
     return 1./(sqrt(2.*pi)*sig)*np.exp(-np.power((x - mu)/sig, 2.)/2)
 
+# Bresenhams line algorithm making a list of points from (x0, y0) to (x1, y1)
 def Bresenham(x0, x1, y0, y1):
     rec = []
     "Bresenham's line algorithm"
@@ -40,7 +43,6 @@ def Bresenham(x0, x1, y0, y1):
                 x += sx
                 err += dy
             y += sy
-    #print(rec)
     return rec
 
 def Image2Map(fname):
@@ -77,26 +79,30 @@ def Rotation2Deg(R):
     elif cos<0 and sin==0:
         return 180.0
 
+# Shows the change in the x position based on distance and heading
 def xPos(heading, dist=0.0):
     return dist * np.cos(heading)
 
+# Shows the change in the y position based on distance and heading
 def yPos(heading, dist=0.0):
     return dist * np.sin(heading)
 
-# .26 is the length from axle to axle in m
+# Change in angle given original angle, turning rate, and distance travelled
 def anglePos(theta, phi, dist=0.0):
     divby0check = np.tan(phi)
     if divby0check == 0:
         return theta
     
     radius = .26 / divby0check
+    # .26 is the length from axle to axle in m
     angle = dist/radius
     
     if phi > 0:
-        return  theta + angle
+        return  theta - angle
     else:
-        return theta - angle
+        return theta + angle
 
+# Helper function which changes the radians input to a range of (0  2pi]
 def radsLimit(angle):
     if angle >= 0 and angle < 2 * np.pi:
         return angle
@@ -106,14 +112,9 @@ def radsLimit(angle):
         else:
             return radsLimit(angle - 2*np.pi)
 
+# Function updates the position of teh robot using xPos, yPos, and anglePos
 def posUpdate(robot_pos, turnAngle, mapUnits, dist=0.0):
     xNew, yNew = xPos(robot_pos[2], dist) * mapUnits + robot_pos[0], yPos(robot_pos[2], dist) * mapUnits + robot_pos[1]
     thetaNew = radsLimit(anglePos(robot_pos[2], turnAngle, dist))
-
-
-    #sig=[0.5,0.5,0.5]
-    #xNew += random.gauss(0,sig[0])
-    #yNew += random.gauss(0,sig[1])
-    #thetaNew += random.gauss(0,sig[2])
     return [xNew, yNew, thetaNew]
 
