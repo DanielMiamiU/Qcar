@@ -7,6 +7,8 @@ SLAM stands for Simultaneous Localization and Mapping. SLAM algorithms are notor
 ## Implementation
 We are solving the problem with a grid based fastSLAM algorithm. The map that is being created by this code is a grid of probabilities representing the probability of an object in that grid cell. A particle filter is used to represent the motion of the car. A particle filter uses several praticles, which are a representation of the cars position. These particles also have a probability assigned to them, representing the probability the particle represents the actual position of the car. As the car moves, encoder data is transcribed to distance and sent to the particle filter. The particle filter moves the particles and uses a random number to simulate error. LIDAR data is used to build a map of the surroundings and also determine which particles are closest to the real position.
 
+## Running
+To run the program, SSH into the robot and run sudo python3 mainMap.py. The robot saves the maps as a png every iteration of the loop and these can be retrieved from the robot in the same folder as the programs.
 
 Code is appropriated from a simulation for use in the real world on the Qcar, github for the simluation is below.
 https://github.com/toolbuddy/2D-Grid-SLAM/tree/master
