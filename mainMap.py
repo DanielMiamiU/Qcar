@@ -112,14 +112,14 @@ if __name__ == '__main__':
         myCar.read_write_std(mtr_cmd, LEDs)
         #if counter % 10 == 0:
         encoder_Dist = mySpeed.encoder_dist()
-        #robot_pos = utils.posUpdate(robot_pos, mtr_cmd[1], mapUnits, encoder_Dist)
+        robot_pos = utils.posUpdate(robot_pos, mtr_cmd[1], mapUnits, encoder_Dist)
         myLidar.read()
 
         # Only update the particle filter when the car moves
         if (encoder_Dist > 0):
             #myCar.read_write_std((0,0), LEDs)
             print("Start PF: "+ str(elapsed_time()))
-            pf.Feed( mtr_cmd[1], encoder_Dist, myLidar.angles, myLidar.distances * mapUnits)
+            pf.Feed( robot_pos[2], mtr_cmd[1], encoder_Dist, myLidar.angles, myLidar.distances * mapUnits)
             pf.Resampling(num_measurements, myLidar.angles, myLidar.distances * mapUnits)
             image_counter += 1
             print("End PF: "+ str(elapsed_time()))

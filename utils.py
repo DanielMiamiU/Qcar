@@ -85,7 +85,7 @@ def xPos(heading, dist=0.0):
 
 # Shows the change in the y position based on distance and heading
 def yPos(heading, dist=0.0):
-    return dist * np.sin(heading)
+    return -dist * np.sin(heading)
 
 # Change in angle given original angle, turning rate, and distance travelled
 def anglePos(theta, phi, dist=0.0):
