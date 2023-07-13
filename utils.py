@@ -85,7 +85,7 @@ def xPos(heading, dist=0.0):
 
 # Shows the change in the y position based on distance and heading
 def yPos(heading, dist=0.0):
-    return -dist * np.sin(heading)
+    return dist * np.sin(heading)
 
 # Change in angle given original angle, turning rate, and distance travelled
 def anglePos(theta, phi, dist=0.0):
@@ -97,10 +97,21 @@ def anglePos(theta, phi, dist=0.0):
     # .26 is the length from axle to axle in m
     angle = dist/radius
     
-    if phi > 0:
-        return  theta - angle
-    else:
-        return theta + angle
+    return theta + angle
+
+# Function for updating teh robots position as it travels along an arc    
+def circleUpdate(robot_pos, turnAngle, mapUnits, dist):
+    divby0check = np.tan(turnAngle)
+    if divby0check == 0:
+        return robot_pos
+    
+    radius = .26 / divby0check
+    # .26 is the length from axle to axle in m
+    angle = dist/radius
+
+    xNew = robot_pos[0] + (mapUnits * radius * (np.sin(robot_pos[2] + angle) - np.sin(robot_pos[2])))
+    yNew = robot_pos[1] - (mapUnits * radius * (np.cos(robot_pos[2]) - np.cos(robot_pos[2] + angle)))
+    return [xNew, yNew, radsLimit(robot_pos[2] + angle)]
 
 # Helper function which changes the radians input to a range of (0  2pi]
 def radsLimit(angle):
@@ -114,7 +125,11 @@ def radsLimit(angle):
 
 # Function updates the position of teh robot using xPos, yPos, and anglePos
 def posUpdate(robot_pos, turnAngle, mapUnits, dist=0.0):
-    xNew, yNew = xPos(robot_pos[2], dist) * mapUnits + robot_pos[0], yPos(robot_pos[2], dist) * mapUnits + robot_pos[1]
-    thetaNew = radsLimit(anglePos(robot_pos[2], turnAngle, dist))
-    return [xNew, yNew, thetaNew]
+    if turnAngle ==0:
+        xNew, yNew = xPos(robot_pos[2], dist) * mapUnits + robot_pos[0], yPos(robot_pos[2], dist) * mapUnits + robot_pos[1]
+        thetaNew = radsLimit(anglePos(robot_pos[2], turnAngle, dist))
+        return [xNew, yNew, thetaNew]
+    else:
+        return circleUpdate(robot_pos, turnAngle, mapUnits, dist)
+    
 

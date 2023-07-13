@@ -18,8 +18,7 @@ class Particle:
 
     # The sampling method moves the robot and uses a gaussian distribution to model error
     def Sampling(self, heading, turnAngle, encoder_dist, sig=[0.2,0.2,0.05]):
-        self.pos[0], self.pos[1] = self.pos[0] + utils.xPos(heading, encoder_dist) * self.mapUnits, self.pos[1] + utils.yPos(heading, encoder_dist) * self.mapUnits
-        self.pos[2] = utils.radsLimit(heading + utils.anglePos(0, turnAngle, encoder_dist))
+        self.pos = utils.posUpdate(self.pos, turnAngle, self.mapUnits, encoder_dist)
 
         self.pos[0] += random.gauss(0,sig[0])
         self.pos[1] += random.gauss(0,sig[1])
