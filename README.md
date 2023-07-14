@@ -10,5 +10,9 @@ We are solving the problem with a grid based fastSLAM algorithm. The map that is
 ## Running
 To run the program, SSH into the robot and run sudo python3 mainMap.py. The robot saves the maps as a png every iteration of the loop and these can be retrieved from the robot in the same folder as the programs. Right trigger controlls the speed of the robot, left stick controlls the steering, B button quits the program. There is a 5 second delay to start in order to throw out bad LIDAR data where the robot will not move.
 
+![IMG_3693](https://github.com/DanielMiamiU/Qcar/assets/118695934/a79d6516-02a3-4496-8bfb-5306524690a5)
+
+
 Code is appropriated from a simulation for use in the real world on the Qcar, github for the simluation is below.
 https://github.com/toolbuddy/2D-Grid-SLAM/tree/master
+
